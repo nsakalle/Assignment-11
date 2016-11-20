@@ -1,0 +1,107 @@
+---
+title: "Assignment 11"
+author: "Nimish Sakalle"
+date: "NOvember 20, 2016"
+output:
+  html_document:
+    keep_md: yes
+  pdf_document: default
+  word_document: default
+subtitle: Analysis.
+---
+
+## Introduction
+
+This is time series analysis on the UK car production fom the year 1977. The idea is to analyze data to observe any seasonal impact on car procuction. This example also look at the outlier the may impact seasonal change.
+Below code is doing following analysis.
+
+a)	Plot the time series. Can you identify seasonal fluctuations and/or a trend? 
+b)	Use a classical decomposition to calculate the trend-cycle and seasonal indices. 
+c)	Do the results support the graphical interpretation from part (a)? 
+d)	Compute and plot the seasonally adjusted data. 
+e)	Change one observation to be an outlier (e.g., add 500 to one observation), and recompute the seasonally adjusted data.
+    What is the effect of the outlier? 
+f)	Does it make any difference if the outlier is near the end rather than in the middle of the time series? 
+g)	Use STL to decompose the series. 
+
+
+``` {r}
+## The first step is to load R libraries that are required for the analysis.
+
+library(plyr)
+library(knitr)
+library(fpp)
+```
+
+###** Making environment ready**
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(root.dir = "~/RProject/Assignment10")
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+###** by looking closly at the graph, looks like peak in car production every year.
+```{r}
+# By looking at the graph I can see increase in car production rate over the year and, 
+data(ukcars)
+str(ukcars)
+names(ukcars)
+plot(ukcars, main ="UK Time-Series from 1977 to 2005", xlab = "Year", ylab ="Cars in thousand" )
+```
+
+
+###** Seasonal trend decomposition.
+### by looking at the observed valueits very clear that there is peak in car production in particular season every year and 
+### consistently repeated in the data set from 1977 to 2005.
+
+```{r}
+fitd <- decompose(ukcars)
+plot(fitd)
+```
+
+### Seasonal trend decomposition, using STL.
+### STL function first determines the trend component using a moving average.
+```{r}
+fit <- stl(ukcars, s.window=7)
+plot(fit)
+```
+
+### seasonally adjusted data constructed by removing the seasonal component.
+```{r}
+eeadj <- seasadj(fitd)
+plot(eeadj)
+```
+
+### Adding outlier to the dataset, in middle, start and end
+
+```{r}
+ukcarsmd <-  ts(c(ukcars[1:54],ukcars[55]+500,ukcars[56:191]),start=c(1977,1),frequency=12)
+ukcarsed <-  ts(c(ukcars[1:54],ukcars[55:179],ukcars[180:191]+500),start=c(1977,1),frequency=12)
+plot(ukcarsmd)
+plot(ukcarsed)
+```
+### It does make a difference, when the graph is in middle, its looks like a spike in car sales.
+### This could be due to any reason. But outlier in the end study. 
+###** Seasonal trend decomposition. With data with outlier
+```{r}
+fitdm <- decompose(ukcarsmd)
+fitde <- decompose(ukcarsed)
+plot(fitdm)
+plot(fitde)
+```
+
+### seasonally adjusted data constructed by removing the seasonal component on data with outlier
+```{r}
+eeadjm <- seasadj(fitdm)
+eeadje <- seasadj(fitde)
+plot(eeadjm)
+plot(eeadje)
+```
+
+### data with STL trend.
+```{r}
+plot(ukcars, col="gray",
+     main="Electrical equipment manufacturing",
+     ylab="New orders index", xlab="")
+lines(fit$time.series[,2],col="red",ylab="Trend")
+```
+
